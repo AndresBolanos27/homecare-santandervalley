@@ -14,23 +14,41 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+    <body class="font-sans antialiased bg-gray-100 dark:bg-gray-900" 
+          x-data="{ 
+              isSidebarOpen: localStorage.getItem('sidebarOpen') !== 'false', 
+              isMobileSidebarOpen: false,
+              darkMode: localStorage.getItem('darkMode') === 'true' || (localStorage.getItem('darkMode') === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          }" 
+          x-init="
+              $watch('isSidebarOpen', val => localStorage.setItem('sidebarOpen', val));
+              if (darkMode) document.documentElement.classList.add('dark');
+              else document.documentElement.classList.remove('dark');
+              $watch('darkMode', val => { 
+                  localStorage.setItem('darkMode', val); 
+                  if (val) document.documentElement.classList.add('dark'); 
+                  else document.documentElement.classList.remove('dark'); 
+              });
+          ">
+        <div class="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-900">
+            <!-- Mobile backdrop -->
+            <div x-show="isMobileSidebarOpen" @click="isMobileSidebarOpen = false" x-transition.opacity class="fixed inset-0 z-40 bg-gray-900 bg-opacity-50 lg:hidden" style="display: none;"></div>
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+            <!-- Sidebar -->
+            @include('layouts.sidebar')
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
+            <!-- Main Content Area -->
+            <div class="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+                <!-- Navbar -->
+                @include('layouts.navigation')
+
+
+
+                <!-- Page Content -->
+                <main class="flex-1">
+                    {{ $slot }}
+                </main>
+            </div>
         </div>
     </body>
 </html>
